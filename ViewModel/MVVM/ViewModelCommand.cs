@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace ViewModel.MVVM
+namespace VM.MVVM
 {
     public class ViewModelCommand : ICommand
     {
@@ -27,7 +27,7 @@ namespace ViewModel.MVVM
             if (executeAction == null)
                 throw new ArgumentNullException(nameof(executeAction));
             _executeAction = executeAction;
-            canExecute = true;
+            _canExecute = canExecute;
         }
 
         public bool CanExecute(object parameter)

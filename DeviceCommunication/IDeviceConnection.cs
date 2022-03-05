@@ -19,6 +19,10 @@ namespace DeviceCommunication
         /// </summary>
         public void SendGetInfo();
         /// <summary>
+        /// Send get info about current lighting status to the device
+        /// </summary>
+        public void SendGetLightingStatus();
+        /// <summary>
         /// Send set lighting state request to the device
         /// </summary>
         /// <param name="request">Request with new lighting state parameters</param>

@@ -71,5 +71,9 @@ namespace SimpleDeviceCommunication
         {
             _deviceConnection.SendGetInfo();
         }
+        public void GetLightingStatus()
+        {
+            _deviceConnection.SendGetLightingStatus();
+        }
     }
 }

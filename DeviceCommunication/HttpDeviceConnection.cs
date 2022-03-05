@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace DeviceCommunication
 {
@@ -17,21 +18,21 @@ namespace DeviceCommunication
 
         public void AttachGetInfoResponse(Action<InfoResponse> action)
         {
-            throw new NotImplementedException();
         }
 
         public void AttachLightingStateChangedResponse(Action<StateOfLightingChangedResponse> action)
         {
-            throw new NotImplementedException();
         }
 
         public bool Connect(string deviceLocation)
         {
-            if (!Uri.IsWellFormedUriString(deviceLocation, UriKind.RelativeOrAbsolute))
-                return false;
-            DeviceUrl = new Uri(deviceLocation);
+            if(!string.IsNullOrEmpty(deviceLocation) && Uri.TryCreate(deviceLocation, UriKind.Absolute, out Uri newUri))
+            {
+                DeviceUrl = newUri;
+                return true;
+            }
 
-            return true;
+            return false;
         }
 
         public void SendGetInfo()
@@ -39,9 +40,15 @@ namespace DeviceCommunication
             throw new NotImplementedException();
         }
 
-        public void SendSetLightingStateColor(SetStateOfLightingRequest request)
+        public void SendGetLightingStatus()
         {
             throw new NotImplementedException();
+        }
+
+        public void SendSetLightingStateColor(SetStateOfLightingRequest request)
+        {
+            string serializedRequest = JsonConvert.SerializeObject(request);
+
         }
     }
 }

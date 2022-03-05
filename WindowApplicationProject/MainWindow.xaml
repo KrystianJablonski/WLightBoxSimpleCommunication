@@ -1,0 +1,135 @@
+﻿<Window x:Class="WindowApplicationProject.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WindowApplicationProject"
+        xmlns:vm="clr-namespace:VM;assembly=ViewModel"
+        mc:Ignorable="d"
+        Title="wLightBox simple communication" Height="450" Width="800">
+    <Window.Resources>
+        <vm:ViewModel x:Key="UserViewModel"/>
+    </Window.Resources>
+    <Window.DataContext>
+        <Binding Source="{StaticResource UserViewModel}"/>
+    </Window.DataContext>
+    <Grid Name="MainGrid"  Margin="10, 10, 10, 10">
+        <Grid x:Name="ConnectGrid" Visibility="Hidden">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Label Grid.Row="0" Content="Enter device IP:" Width="500" Height="30" HorizontalAlignment="Center" VerticalAlignment="Bottom" />
+            <TextBox Grid.Row="1" x:Name="DevicePathTextBox" HorizontalAlignment="Center" Width="500" Height="30" VerticalContentAlignment="Center"
+                     VerticalAlignment="Top" Text="{Binding DevicePath}"/>
+            <Button Grid.Row="2" Content="Connect" HorizontalAlignment="Center" Width="100" Height="30" VerticalContentAlignment="Center" 
+                    VerticalAlignment="Top" Command="{Binding CreateHttpConnectionCommand}"/>
+        </Grid>
+        <Grid x:Name="ManagementGrid" Visibility="Visible">
+            <Grid.RowDefinitions>
+                <!--Device info section-->
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="20"/>
+                <!--Current lighting status section-->
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="20"/>
+                <!--New lighting section-->
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            
+            <Label Grid.Row="0" Content="Device name:" Width="200" HorizontalContentAlignment="Center" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <Label Grid.Row="1" Content="{Binding DeviceName}" Width="200" HorizontalContentAlignment="Center" HorizontalAlignment="Left" 
+                   VerticalContentAlignment="Top" VerticalAlignment="Top"/>
+            <Label Grid.Row="0" Content="Product:" Width="200" HorizontalContentAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+            <Label Grid.Row="1" Content="{Binding DeviceProduct}" Width="200" HorizontalContentAlignment="Center"  HorizontalAlignment="Center" 
+                   VerticalContentAlignment="Top" VerticalAlignment="Top"/>
+            <Label Grid.Row="0" Content="IP:" Width="200" HorizontalContentAlignment="Center"  HorizontalAlignment="Right" VerticalAlignment="Top"/>
+            <Label Grid.Row="1" Content="{Binding DeviceIp}"  Width="200" HorizontalContentAlignment="Center"  HorizontalAlignment="Right" 
+                   VerticalContentAlignment="Top" VerticalAlignment="Top" />
+            
+            <Rectangle Grid.Row="2" Fill="AntiqueWhite" />
+
+            <Label Grid.Row="3" Content="Current color:" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="200"/>
+            <Label Grid.Row="4" Content="{Binding CurrentColor}" HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="200"/>
+            <Label Grid.Row="3" Content="Current Effect:" HorizontalAlignment="Center" VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="200"/>
+            <Label Grid.Row="4" Content="{Binding CurrentEffect}" HorizontalAlignment="Center" VerticalAlignment="Top" HorizontalContentAlignment="Center" Width="200"/>
+            
+            <Rectangle Grid.Row="5" Fill="AntiqueWhite" />
+
+            <Grid Grid.Row="6">
+                <Grid.ColumnDefinitions>
+                    <!--changing color section-->
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="40"/>
+                    <!--changing effect section-->
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="40"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="New Color:" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        <TextBox Grid.Column="1" Text="{Binding NewColor}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="Color fade time (ms):" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        <TextBox Grid.Column="1" Text="{Binding ColorFade}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    </Grid>
+                    <Button Grid.Row="3" Content="Change color" Command="{Binding SetColorCommand}"/>
+                </Grid>
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="40"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="New Effect:" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableEffects}" Text="{Binding NewEffect}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="Effect fade time (ms):" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        <TextBox Grid.Column="1" Text="{Binding EffectFade}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    </Grid>
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="Effect step time (ms):" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        <TextBox Grid.Column="1" Text="{Binding EffectStep}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    </Grid>
+                    <Button Grid.Row="4" Content="Change Effect" Command="{Binding SetEffectCommand}"/>
+                </Grid>
+            </Grid>
+            
+        </Grid>
+    </Grid>
+</Window>

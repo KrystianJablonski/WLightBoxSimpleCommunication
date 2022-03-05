@@ -1,9 +1,11 @@
-﻿
+﻿using System;
+
 namespace DeviceCommunication.CommunicationClasses
 {
     /// <summary>
     /// Setting state of lighting request
     /// </summary>
+    [Serializable]
     public class SetStateOfLightingRequest
     {
         public EffectType effectID;

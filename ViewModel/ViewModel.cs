@@ -1,12 +1,13 @@
 ﻿using System;
 using System.ComponentModel;
-using ViewModel.MVVM;
+using VM.MVVM;
 using SimpleDeviceCommunication;
 using DeviceCommunication;
 using System.Text.RegularExpressions;
 using DeviceCommunication.CommunicationClasses;
+using System.Collections.Generic;
 
-namespace ViewModel
+namespace VM
 {
     /// <summary>
     /// Implementation of ViewModel component. 
@@ -16,9 +17,14 @@ namespace ViewModel
     {
         public ViewModel()
         {
-            CreateHttpConnectionCommand = new ViewModelCommand(CreateHttpConnection, false);
+            CreateHttpConnectionCommand = new ViewModelCommand(CreateHttpConnection, true);
             SetColorCommand = new ViewModelCommand(SetColor, true);
             SetEffectCommand = new ViewModelCommand(SetEffect, true);
+            AvailableEffects = new List<EffectType>();
+            foreach (EffectType enumValue in Enum.GetValues<EffectType>())
+                AvailableEffects.Add(enumValue);
+            RaisePropertyChanged(nameof(AvailableEffects));
+            NewEffect = AvailableEffects[0];
         }
 
         #region Private ViewModel elements
@@ -29,7 +35,7 @@ namespace ViewModel
 
         #region Public ViewModel elements
 
-        public Action ConnectionSucceeded = null;
+        public Action DeviceAddressEnteredCorrectly = null;
         public Action<string> ShowMessage = null;
 
         #endregion
@@ -44,7 +50,6 @@ namespace ViewModel
             set
             {
                 _devicePath = value;
-                CreateHttpConnectionCommand.CanExecuteValue = !string.IsNullOrEmpty(value);
                 RaisePropertyChanged();
             }
         }
@@ -58,9 +63,9 @@ namespace ViewModel
             get => _newColor;
             set
             {
-                if (!Regex.IsMatch(value, "^(?:[0-9a-fA-F]{2}|--){1}$|^(?:[0-9a-fA-F]{2}|--){4,5}$"))
-                    return;
-                _newColor = value;
+                if (Regex.IsMatch(value, "^(?:[0-9a-fA-F]{2}|--){1}$|^(?:[0-9a-fA-F]{2}|--){4,5}$"))
+                    _newColor = value;
+                SetColorCommand.CanExecuteValue = true;
                 RaisePropertyChanged();
             }
         }
@@ -74,11 +79,11 @@ namespace ViewModel
             get => _colorFade.ToString();
             set
             {
-                if (!uint.TryParse(value, out uint newValue))
-                    return;
-                if (newValue > 3600000)
-                    return;
-                _colorFade = newValue;
+                if (string.IsNullOrWhiteSpace(value))
+                    _colorFade = 0;
+                else if (uint.TryParse(value, out uint newValue) && newValue <= 3600000)
+                    _colorFade = newValue;
+                SetColorCommand.CanExecuteValue = true;
                 RaisePropertyChanged();
             }
         }
@@ -92,6 +97,7 @@ namespace ViewModel
             set
             {
                 _newEffect = value;
+                SetEffectCommand.CanExecuteValue = true;
                 RaisePropertyChanged();
             }
         }
@@ -106,11 +112,11 @@ namespace ViewModel
             get => _effectFade.ToString();
             set
             {
-                if (!uint.TryParse(value, out uint newValue))
-                    return;
-                if (newValue > 3600000)
-                    return;
-                _effectFade = newValue;
+                if (string.IsNullOrWhiteSpace(value))
+                    _effectFade = 0;
+                else if (uint.TryParse(value, out uint newValue) && newValue <= 3600000)
+                    _effectFade = newValue;
+                SetEffectCommand.CanExecuteValue = true;
                 RaisePropertyChanged();
             }
         }
@@ -124,11 +130,11 @@ namespace ViewModel
             get => _effectStep.ToString();
             set
             {
-                if (!uint.TryParse(value, out uint newValue))
-                    return;
-                if (newValue > 3600000)
-                    return;
-                _effectStep = newValue;
+                if (string.IsNullOrWhiteSpace(value))
+                    _effectStep = 0;
+                else if (uint.TryParse(value, out uint newValue) && newValue <= 3600000)
+                    _effectStep = newValue;
+                SetEffectCommand.CanExecuteValue = true;
                 RaisePropertyChanged();
             }
         }
@@ -182,10 +188,20 @@ namespace ViewModel
             }
         }
 
+        public List<EffectType> AvailableEffects
+        {
+            get => _availableEffects;
+            private set
+            {
+                _availableEffects = value;
+                RaisePropertyChanged();
+            }
+        }
+
         // Bindable ViewModel actions commands 
-        public ViewModelCommand CreateHttpConnectionCommand;
-        public ViewModelCommand SetColorCommand;
-        public ViewModelCommand SetEffectCommand;
+        public ViewModelCommand CreateHttpConnectionCommand { get; private set; }
+        public ViewModelCommand SetColorCommand { get; private set; }
+        public ViewModelCommand SetEffectCommand { get; private set; }
         #endregion
 
         #region Private binding fields
@@ -194,6 +210,7 @@ namespace ViewModel
         private string _devicePath = "";
         private string _newColor = "--";
         private uint _colorFade = 1000;
+        private List<EffectType> _availableEffects;
         private EffectType _newEffect = EffectType.None;
         private uint _effectFade = 1000;
         private uint _effectStep = 1000;
@@ -209,15 +226,24 @@ namespace ViewModel
 
         #region ViewModel actions
 
+
         /// <summary>
         /// On create http connection command handler.
         /// Tries to create new http connection with device at <seealso cref="DevicePath"/>.
         /// </summary>
         private void CreateHttpConnection()
         {
-            HttpDeviceConnection newDeviceCommunication = new HttpDeviceConnection();
-            if(!newDeviceCommunication.Connect(DevicePath))
+            if(string.IsNullOrEmpty(DevicePath))
+            {
+                ShowMessage?.Invoke("Device path cannot be empty");
                 return;
+            }
+            IDeviceConnection newDeviceCommunication = new DummyConnection();
+            if(!newDeviceCommunication.Connect(DevicePath))
+            {
+                ShowMessage?.Invoke("Addres is not valid: " + DevicePath);
+                return;
+            }
             _model = new DeviceCommunicationFasade(newDeviceCommunication);
             _model.deviceInfoEvent += (name, product, ip) =>
             {
@@ -230,7 +256,9 @@ namespace ViewModel
                 CurrentColor = color;
                 CurrentEffect = effect;
             };
-            ConnectionSucceeded?.Invoke();
+            DeviceAddressEnteredCorrectly?.Invoke();
+            _model.GetDeviceInfo();
+            _model.GetLightingStatus();
         }
 
         /// <summary>
@@ -250,6 +278,7 @@ namespace ViewModel
                 return;
             }
             _model.SetColor(NewColor, _colorFade);
+            SetColorCommand.CanExecuteValue = false;
         }
 
         /// <summary>
@@ -269,6 +298,7 @@ namespace ViewModel
                 return;
             }
             _model.SetEffect(_newEffect, _effectFade, _effectStep);
+            SetEffectCommand.CanExecuteValue = false;
         }
 
         #endregion

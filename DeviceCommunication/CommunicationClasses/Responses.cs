@@ -1,9 +1,12 @@
 ﻿
+using System;
+
 namespace DeviceCommunication.CommunicationClasses
 {
     /// <summary>
     /// Get info response
     /// </summary>
+    [Serializable]
     public class InfoResponse
     {
         public string deviceName;
@@ -19,6 +22,7 @@ namespace DeviceCommunication.CommunicationClasses
     /// <summary>
     /// Set state of lighting response 
     /// </summary>
+    [Serializable]
     public class StateOfLightingChangedResponse
     {
         public ColorMode colorMode;
