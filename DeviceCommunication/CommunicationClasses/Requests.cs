@@ -10,6 +10,6 @@ namespace DeviceCommunication.CommunicationClasses
     {
         public EffectType effectID;
         public string desiredColor;
-        public EffectInfo durationsMs;
+        public DurationMs durationsMs;
     }
 }

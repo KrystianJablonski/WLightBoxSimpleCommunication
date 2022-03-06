@@ -30,6 +30,6 @@ namespace DeviceCommunication.CommunicationClasses
         public string desiredColor;
         public string currentColor;
         public string lastOnColor;
-        public EffectInfo durationsMs;
+        public DurationMs durationsMs;
     }
 }

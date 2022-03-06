@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace VM.MVVM
 {
+    /// <summary>
+    /// View move base implementing <seealso cref="INotifyPropertyChanged"/> interface.
+    /// </summary>
     public class ViewModelBase : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;

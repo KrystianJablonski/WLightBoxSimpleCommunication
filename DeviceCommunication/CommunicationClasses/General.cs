@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace DeviceCommunication.CommunicationClasses
 {
+    /// <summary>
+    /// Color modes enum according to wLightBox API
+    /// </summary>
     public enum ColorMode
     {
         RGBW = 1,
@@ -17,6 +20,9 @@ namespace DeviceCommunication.CommunicationClasses
         RGBWW,
     }
 
+    /// <summary>
+    /// Effect types enum according to wLightBox API
+    /// </summary>
     public enum EffectType
     {
         None,
@@ -32,8 +38,11 @@ namespace DeviceCommunication.CommunicationClasses
         Effect10,
     }
 
+    /// <summary>
+    /// Duration ms used in the wLightBox communication
+    /// </summary>
     [Serializable]
-    public class EffectInfo
+    public class DurationMs
     {
         public uint colorFade;
         public uint effectFade;

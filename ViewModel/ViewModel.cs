@@ -11,10 +11,13 @@ namespace VM
 {
     /// <summary>
     /// Implementation of ViewModel component. 
-    /// 
     /// </summary>
     public class ViewModel : ViewModelBase
     {
+        /// <summary>
+        /// Default ViewModel constructor.
+        /// Initializes neccessery properties.
+        /// </summary>
         public ViewModel()
         {
             CreateHttpConnectionCommand = new ViewModelCommand(CreateHttpConnection, true);
@@ -29,13 +32,17 @@ namespace VM
 
         #region Private ViewModel elements
 
+        // reference to the model component object
         private DeviceCommunicationFasade _model = null;
 
         #endregion
 
         #region Public ViewModel elements
 
+        // ViewModel additional events
+        // Action to invoke when connection with the device succeeded
         public Action DeviceAddressEnteredCorrectly = null;
+        // Action to show message to the user 
         public Action<string> ShowMessage = null;
 
         #endregion
@@ -139,6 +146,9 @@ namespace VM
             }
         }
 
+        /// <summary>
+        /// Property used for presenting the device name.
+        /// </summary>
         public string DeviceName
         {
             get => _deviceName;
@@ -148,6 +158,10 @@ namespace VM
                 RaisePropertyChanged();
             }
         }
+
+        /// <summary>
+        /// Property used for presenting the product name.
+        /// </summary>
         public string DeviceProduct
         {
             get => _deviceProduct;
@@ -158,6 +172,9 @@ namespace VM
             }
         }
 
+        /// <summary>
+        /// Property used for presenting the device ip.
+        /// </summary>
         public string DeviceIp
         {
             get => _deviceIp;
@@ -168,6 +185,9 @@ namespace VM
             }
         }
 
+        /// <summary>
+        /// Property used for presenting current light color.
+        /// </summary>
         public string CurrentColor
         {
             get => _currentColor;
@@ -178,6 +198,9 @@ namespace VM
             }
         }
 
+        /// <summary>
+        /// Property used for presenting current light effect.
+        /// </summary>
         public EffectType CurrentEffect
         {
             get => _currentEffect;
@@ -188,6 +211,9 @@ namespace VM
             }
         }
 
+        /// <summary>
+        /// Property used for choosing effect combobox with available values.
+        /// </summary>
         public List<EffectType> AvailableEffects
         {
             get => _availableEffects;
