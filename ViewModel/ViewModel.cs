@@ -1,11 +1,11 @@
 ﻿using System;
-using System.ComponentModel;
 using VM.MVVM;
 using SimpleDeviceCommunication;
 using DeviceCommunication;
 using System.Text.RegularExpressions;
 using DeviceCommunication.CommunicationClasses;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace VM
 {
@@ -41,9 +41,9 @@ namespace VM
 
         // ViewModel additional events
         // Action to invoke when connection with the device succeeded
-        public Action DeviceAddressEnteredCorrectly = null;
+        public event Action DeviceAddressEnteredCorrectly;
         // Action to show message to the user 
-        public Action<string> ShowMessage = null;
+        public event Action<string> ShowMessage;
 
         #endregion
 
@@ -264,7 +264,7 @@ namespace VM
                 ShowMessage?.Invoke("Device path cannot be empty");
                 return;
             }
-            IDeviceConnection newDeviceCommunication = new DummyConnection();
+            IDeviceConnection newDeviceCommunication = new HttpDeviceConnection();
             if(!newDeviceCommunication.Connect(DevicePath))
             {
                 ShowMessage?.Invoke("Addres is not valid: " + DevicePath);
@@ -282,9 +282,10 @@ namespace VM
                 CurrentColor = color;
                 CurrentEffect = effect;
             };
+            _model.showMessage += (message) => ShowMessage?.Invoke(message);
             DeviceAddressEnteredCorrectly?.Invoke();
-            _model.GetDeviceInfo();
-            _model.GetLightingStatus();
+            Task.Run(_model.GetDeviceInfo);
+            Task.Run(_model.GetLightingStatus);
         }
 
         /// <summary>
@@ -303,7 +304,7 @@ namespace VM
                 ShowMessage?.Invoke("Color fade value out of range. Acceptable: 0 or [25, 3600000]");
                 return;
             }
-            _model.SetColor(NewColor, _colorFade);
+            Task.Run(() => _model.SetColor(NewColor, _colorFade));
             SetColorCommand.CanExecuteValue = false;
         }
 
@@ -323,7 +324,7 @@ namespace VM
                 ShowMessage?.Invoke("Effect step value out of range. Acceptable: 0 or [25, 3600000]");
                 return;
             }
-            _model.SetEffect(_newEffect, _effectFade, _effectStep);
+            Task.Run(() => _model.SetEffect(_newEffect, _effectFade, _effectStep));
             SetEffectCommand.CanExecuteValue = false;
         }
 

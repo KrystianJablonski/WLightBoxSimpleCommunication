@@ -1,10 +1,10 @@
 ﻿using DeviceCommunication.CommunicationClasses;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using System.Net.Http;
+using DeviceCommunication.Extensions;
 
 namespace DeviceCommunication
 {
@@ -14,16 +14,15 @@ namespace DeviceCommunication
     public class HttpDeviceConnection : IDeviceConnection
     {
         // device connection url
-        public Uri DeviceUrl { get; set; }
+        public Uri DeviceUrl { get; private set; }
+        private readonly HttpClient client = new HttpClient();
 
-        public void AttachGetInfoResponse(Action<InfoResponse> action)
-        {
-        }
-
-        public void AttachLightingStateChangedResponse(Action<StateOfLightingChangedResponse> action)
-        {
-        }
-
+        /// <summary>
+        /// Implementation of <seealso cref="IDeviceConnection.Connect(string)"/> method.
+        /// Saves the <paramref name="deviceLocation"/> uri if it's correct uri address.
+        /// </summary>
+        /// <param name="deviceLocation">Uri of the device</param>
+        /// <returns>Is correct <paramref name="deviceLocation"/> uri address</returns>
         public bool Connect(string deviceLocation)
         {
             if(!string.IsNullOrEmpty(deviceLocation) && Uri.TryCreate(deviceLocation, UriKind.Absolute, out Uri newUri))
@@ -35,20 +34,86 @@ namespace DeviceCommunication
             return false;
         }
 
-        public void SendGetInfo()
+        /// <summary>
+        /// Implementation of <seealso cref="IDeviceConnection.GetInfoAsync"/> method.
+        /// Sends the get device info request and awaits and returnes deserialized response.
+        /// </summary>
+        /// <returns>Device response</returns>
+        public async Task<DeviceInfoResponse> GetInfoAsync()
         {
-            throw new NotImplementedException();
+            DeviceInfoResponse infoResponse;
+            try
+            {
+                HttpResponseMessage response = await client.GetAsync(DeviceUrl.AbsoluteUri + "info");
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                infoResponse = JsonConvert.DeserializeObject<DeviceInfoResponse>(responseBody);
+                infoResponse.statusCode = response.StatusCode;
+            }
+            catch (HttpRequestException e)
+            {
+                infoResponse = new DeviceInfoResponse()
+                {
+                    statusCode = e.StatusCode,
+                };
+            }
+            return infoResponse;
         }
 
-        public void SendGetLightingStatus()
+        /// <summary>
+        /// Implementation of <seealso cref="IDeviceConnection.GetLightingStatus"/> method.
+        /// Sends the get lighting status request and awaits and returnes deserialized response.
+        /// </summary>
+        /// <returns>Lighting status response</returns>
+        public async Task<StateOfLightingChangedResponse> GetLightingStatus()
         {
-            throw new NotImplementedException();
+            StateOfLightingChangedResponse stateResponse;
+            try
+            {
+                string path = DeviceUrl.AbsoluteUri + "api/rgbw/state";
+                HttpResponseMessage response = await client.GetAsync(path);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                stateResponse = JsonConvert.DeserializeObject<StateOfLightingChangedResponse>(responseBody);
+                stateResponse.statusCode = response.StatusCode;
+            }
+            catch (HttpRequestException e)
+            {
+                stateResponse = new StateOfLightingChangedResponse()
+                {
+                    statusCode = e.StatusCode,
+                };
+            }
+            return stateResponse;
         }
 
-        public void SendSetLightingStateColor(SetStateOfLightingRequest request)
+        /// <summary>
+        /// Implementation of <seealso cref="IDeviceConnection.GetLightingStatus"/> method.
+        /// Sends the post set lighting status request and awaits and returnes deserialized response.
+        /// </summary>
+        /// <returns>New lighting status response</returns>
+        public async Task<StateOfLightingChangedResponse> SetLightingState(SetStateOfLightingRequest request)
         {
-            string serializedRequest = JsonConvert.SerializeObject(request);
-
+            StateOfLightingChangedResponse stateResponse;
+            try
+            {
+                string serializedRequest = JsonConvert.SerializeObject(request);
+                IDictionary<string, string> postContentValues = request.ToKeyValue();
+                FormUrlEncodedContent content = new FormUrlEncodedContent(postContentValues);
+                HttpResponseMessage response = await client.PostAsync(DeviceUrl.AbsoluteUri + "api/rgbw/state", content);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                stateResponse = JsonConvert.DeserializeObject<StateOfLightingChangedResponse>(responseBody);
+                stateResponse.statusCode = response.StatusCode;
+            }
+            catch (HttpRequestException e)
+            {
+                stateResponse = new StateOfLightingChangedResponse()
+                {
+                    statusCode = e.StatusCode,
+                };
+            }
+            return stateResponse;
         }
     }
 }

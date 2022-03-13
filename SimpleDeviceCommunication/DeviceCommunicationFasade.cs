@@ -1,6 +1,7 @@
 ﻿using DeviceCommunication;
 using DeviceCommunication.CommunicationClasses;
 using System;
+using System.Threading.Tasks;
 
 namespace SimpleDeviceCommunication
 {
@@ -16,6 +17,8 @@ namespace SimpleDeviceCommunication
         public delegate void GetNewLightingStateDelegate(string colorMode, EffectType effect, string currentColor);
         // New lighting state response event
         public event GetNewLightingStateDelegate newLightingStateEvent;
+        // Show message event
+        public event Action<string> showMessage;
 
 
         /// <summary>
@@ -28,17 +31,15 @@ namespace SimpleDeviceCommunication
             if (deviceConnection is null)
                 throw new ArgumentNullException(nameof(deviceConnection));
             _deviceConnection = deviceConnection;
-            _deviceConnection.AttachGetInfoResponse(DeviceInfoResponseHandler);
-            _deviceConnection.AttachLightingStateChangedResponse(StateOfLightingResponseHandler);
         }
 
         /// <summary>
         /// On device info response event handler.
         /// Invokes <seealso cref="deviceInfoEvent"/>.
         /// </summary>
-        private void DeviceInfoResponseHandler(InfoResponse response)
+        private void DeviceInfoResponseHandler(DeviceInfoResponse response)
         {
-            deviceInfoEvent?.Invoke(response.deviceName, response.product, response.ip);
+            deviceInfoEvent?.Invoke(response.device.deviceName, response.device.product, response.device.ip);
         }
 
         /// <summary>
@@ -47,7 +48,7 @@ namespace SimpleDeviceCommunication
         /// </summary>
         private void StateOfLightingResponseHandler(StateOfLightingChangedResponse response)
         {
-            newLightingStateEvent?.Invoke(response.colorMode.ToString(), response.effectID, response.currentColor);
+            newLightingStateEvent?.Invoke(response.rgbw.colorMode.ToString(), response.rgbw.effectID, response.rgbw.currentColor);
         }
 
         /// <summary>
@@ -59,16 +60,29 @@ namespace SimpleDeviceCommunication
         {
             SetStateOfLightingRequest request = new SetStateOfLightingRequest()
             {
-                effectID = EffectType.None,
-                desiredColor = color,
-                durationsMs = new DurationMs()
+                rgbw = new SetStateOfLightingRequestContent()
                 {
-                    colorFade = colorFade,
-                    effectFade = 0,
-                    effectStep = 0,
-                },
+                    effectID = EffectType.None,
+                    desiredColor = color,
+                    durationsMs = new DurationMs()
+                    {
+                        colorFade = colorFade,
+                        effectFade = 0,
+                        effectStep = 0,
+                    },
+                }
             };
-            _deviceConnection.SendSetLightingStateColor(request);
+            Task<StateOfLightingChangedResponse> result = _deviceConnection.SetLightingState(request);
+            result.Wait();
+            StateOfLightingChangedResponse lightingState = result.Result;
+            if (lightingState == null || lightingState.statusCode != System.Net.HttpStatusCode.OK)
+            {
+                showMessage?.Invoke("Set color failed. " + (lightingState?.statusCode == null ?
+                    "No response from device."
+                    : "StatusCode = " + lightingState.statusCode.ToString() + "."));
+            }
+            else
+                StateOfLightingResponseHandler(lightingState);
         }
 
         /// <summary>
@@ -81,16 +95,29 @@ namespace SimpleDeviceCommunication
         {
             SetStateOfLightingRequest request = new SetStateOfLightingRequest()
             {
-                effectID = effectID,
-                desiredColor = "--",
-                durationsMs = new DurationMs()
+                rgbw = new SetStateOfLightingRequestContent()
                 {
-                    colorFade = 0,
-                    effectFade = effectFade,
-                    effectStep = effectStep,
-                },
+                    effectID = effectID,
+                    desiredColor = "--",
+                    durationsMs = new DurationMs()
+                    {
+                        colorFade = 0,
+                        effectFade = effectFade,
+                        effectStep = effectStep,
+                    },
+                }
             };
-            _deviceConnection.SendSetLightingStateColor(request);
+            Task<StateOfLightingChangedResponse> result = _deviceConnection.SetLightingState(request);
+            result.Wait();
+            StateOfLightingChangedResponse lightingState = result.Result;
+            if (lightingState == null || lightingState.statusCode != System.Net.HttpStatusCode.OK)
+            {
+                showMessage?.Invoke("Set effect failed. " + (lightingState?.statusCode == null ?
+                    "No response from device."
+                    : "StatusCode = " + lightingState.statusCode.ToString() + "."));
+            }
+            else
+                StateOfLightingResponseHandler(lightingState);
         }
 
         /// <summary>
@@ -98,7 +125,17 @@ namespace SimpleDeviceCommunication
         /// </summary>
         public void GetDeviceInfo()
         {
-            _deviceConnection.SendGetInfo();
+            Task<DeviceInfoResponse> result = _deviceConnection.GetInfoAsync();
+            result.Wait();
+            DeviceInfoResponse deviceState = result.Result;
+            if (deviceState == null || deviceState.statusCode != System.Net.HttpStatusCode.OK)
+            {
+                showMessage?.Invoke("Get device info failed. " + (deviceState?.statusCode == null ?
+                    "No response from device."
+                    : "StatusCode = " + deviceState.statusCode.ToString() + "."));
+            }
+            else
+                DeviceInfoResponseHandler(deviceState);
         }
 
         /// <summary>
@@ -106,7 +143,17 @@ namespace SimpleDeviceCommunication
         /// </summary>
         public void GetLightingStatus()
         {
-            _deviceConnection.SendGetLightingStatus();
+            Task<StateOfLightingChangedResponse> result = _deviceConnection.GetLightingStatus();
+            result.Wait();
+            StateOfLightingChangedResponse lightingState = result.Result;
+            if (lightingState == null || lightingState.statusCode != System.Net.HttpStatusCode.OK)
+            {
+                showMessage?.Invoke("Get lighting status failed. " + (lightingState?.statusCode == null ?
+                    "No response from device."
+                    : "StatusCode = " + lightingState.statusCode.ToString() + "."));
+            }
+            else
+                StateOfLightingResponseHandler(lightingState);
         }
     }
 }

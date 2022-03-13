@@ -27,8 +27,8 @@ namespace WindowApplicationProject
 
             if (DataContext is ViewModel viewModel)
             {
-                viewModel.ShowMessage = message => MessageBox.Show(message);
-                viewModel.DeviceAddressEnteredCorrectly = DeviceAddressEnteredCorrectly;
+                viewModel.ShowMessage += message => MessageBox.Show(message);
+                viewModel.DeviceAddressEnteredCorrectly += DeviceAddressEnteredCorrectly;
             }
 
             ConnectGrid.Visibility = Visibility.Visible;

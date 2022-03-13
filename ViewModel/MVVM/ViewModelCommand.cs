@@ -43,10 +43,7 @@ namespace VM.MVVM
         /// <seealso cref="ICommand"/> implementation of <seealso cref="ICommand.CanExecute(object?)"/> method. 
         /// </summary>
         /// <returns><seealso cref="_canExecute"/></returns>
-        public bool CanExecute(object parameter)
-        {
-            return _canExecute;
-        }
+        public bool CanExecute(object parameter) => _canExecute;
 
         /// <summary>
         /// <seealso cref="ICommand"/> implementation of <seealso cref="ICommand.Execute(object?)"/> method. 
