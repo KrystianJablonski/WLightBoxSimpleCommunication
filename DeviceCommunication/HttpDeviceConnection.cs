@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Net.Http;
-using DeviceCommunication.Extensions;
+using System.Text;
+using DeviceCommunication.HttpConnection;
 
 namespace DeviceCommunication
 {
@@ -15,7 +16,14 @@ namespace DeviceCommunication
     {
         // device connection url
         public Uri DeviceUrl { get; private set; }
-        private readonly HttpClient client = new HttpClient();
+        private readonly IGetPostClient _client;
+
+        public HttpDeviceConnection(IGetPostClient httpClient = null)
+        {
+            _client = httpClient;
+            if (_client == null)
+                _client = new HttpGetPostClient();
+        }
 
         /// <summary>
         /// Implementation of <seealso cref="IDeviceConnection.Connect(string)"/> method.
@@ -44,7 +52,7 @@ namespace DeviceCommunication
             DeviceInfoResponse infoResponse;
             try
             {
-                HttpResponseMessage response = await client.GetAsync(DeviceUrl.AbsoluteUri + "info");
+                HttpResponseMessage response = await _client.GetAsync(DeviceUrl.AbsoluteUri + "info");
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
                 infoResponse = JsonConvert.DeserializeObject<DeviceInfoResponse>(responseBody);
@@ -71,7 +79,7 @@ namespace DeviceCommunication
             try
             {
                 string path = DeviceUrl.AbsoluteUri + "api/rgbw/state";
-                HttpResponseMessage response = await client.GetAsync(path);
+                HttpResponseMessage response = await _client.GetAsync(path);
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
                 stateResponse = JsonConvert.DeserializeObject<StateOfLightingChangedResponse>(responseBody);
@@ -98,9 +106,8 @@ namespace DeviceCommunication
             try
             {
                 string serializedRequest = JsonConvert.SerializeObject(request);
-                IDictionary<string, string> postContentValues = request.ToKeyValue();
-                FormUrlEncodedContent content = new FormUrlEncodedContent(postContentValues);
-                HttpResponseMessage response = await client.PostAsync(DeviceUrl.AbsoluteUri + "api/rgbw/state", content);
+                StringContent content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await _client.PostAsync(DeviceUrl.AbsoluteUri + "api/rgbw/state", content);
                 response.EnsureSuccessStatusCode();
                 string responseBody = await response.Content.ReadAsStringAsync();
                 stateResponse = JsonConvert.DeserializeObject<StateOfLightingChangedResponse>(responseBody);
