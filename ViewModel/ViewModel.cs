@@ -284,8 +284,8 @@ namespace VM
             };
             _model.showMessage += (message) => ShowMessage?.Invoke(message);
             DeviceAddressEnteredCorrectly?.Invoke();
-            Task.Run(_model.GetDeviceInfo);
-            Task.Run(_model.GetLightingStatus);
+            _ = _model.GetDeviceInfo();
+            _ = _model.GetLightingStatusAsync();
         }
 
         /// <summary>
@@ -304,7 +304,7 @@ namespace VM
                 ShowMessage?.Invoke("Color fade value out of range. Acceptable: 0 or [25, 3600000]");
                 return;
             }
-            Task.Run(() => _model.SetColor(NewColor, _colorFade));
+            _ = _model.SetColor(NewColor, _colorFade);
             SetColorCommand.CanExecuteValue = false;
         }
 
@@ -324,7 +324,7 @@ namespace VM
                 ShowMessage?.Invoke("Effect step value out of range. Acceptable: 0 or [25, 3600000]");
                 return;
             }
-            Task.Run(() => _model.SetEffect(_newEffect, _effectFade, _effectStep));
+            _ = _model.SetEffect(_newEffect, _effectFade, _effectStep);
             SetEffectCommand.CanExecuteValue = false;
         }
 

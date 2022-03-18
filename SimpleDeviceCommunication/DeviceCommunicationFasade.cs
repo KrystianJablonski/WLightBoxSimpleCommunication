@@ -56,7 +56,7 @@ namespace SimpleDeviceCommunication
         /// </summary>
         /// <param name="color">New color</param>
         /// <param name="colorFade">Duration of color transition</param>
-        public void SetColor(string color, uint colorFade)
+        public async Task SetColor(string color, uint colorFade)
         {
             SetStateOfLightingRequest request = new SetStateOfLightingRequest()
             {
@@ -72,9 +72,7 @@ namespace SimpleDeviceCommunication
                     },
                 }
             };
-            Task<StateOfLightingChangedResponse> result = _deviceConnection.SetLightingState(request);
-            result.Wait();
-            StateOfLightingChangedResponse lightingState = result.Result;
+            StateOfLightingChangedResponse lightingState = await _deviceConnection.SetLightingState(request);
             if (lightingState == null || lightingState.statusCode != System.Net.HttpStatusCode.OK)
             {
                 showMessage?.Invoke("Set color failed. " + (lightingState?.statusCode == null ?
@@ -91,7 +89,7 @@ namespace SimpleDeviceCommunication
         /// <param name="effectID">New effect</param>
         /// <param name="effectFade">Duration of effect transition</param>
         /// <param name="effectStep">Time of effect step</param>
-        public void SetEffect(EffectType effectID, uint effectFade, uint effectStep)
+        public async Task SetEffect(EffectType effectID, uint effectFade, uint effectStep)
         {
             SetStateOfLightingRequest request = new SetStateOfLightingRequest()
             {
@@ -107,9 +105,7 @@ namespace SimpleDeviceCommunication
                     },
                 }
             };
-            Task<StateOfLightingChangedResponse> result = _deviceConnection.SetLightingState(request);
-            result.Wait();
-            StateOfLightingChangedResponse lightingState = result.Result;
+            StateOfLightingChangedResponse lightingState = await _deviceConnection.SetLightingState(request);
             if (lightingState == null || lightingState.statusCode != System.Net.HttpStatusCode.OK)
             {
                 showMessage?.Invoke("Set effect failed. " + (lightingState?.statusCode == null ?
@@ -123,11 +119,9 @@ namespace SimpleDeviceCommunication
         /// <summary>
         /// Send get info request to the device.
         /// </summary>
-        public void GetDeviceInfo()
+        public async Task GetDeviceInfo()
         {
-            Task<DeviceInfoResponse> result = _deviceConnection.GetInfoAsync();
-            result.Wait();
-            DeviceInfoResponse deviceState = result.Result;
+            DeviceInfoResponse deviceState = await _deviceConnection.GetInfoAsync();
             if (deviceState == null || deviceState.statusCode != System.Net.HttpStatusCode.OK)
             {
                 showMessage?.Invoke("Get device info failed. " + (deviceState?.statusCode == null ?
@@ -141,11 +135,9 @@ namespace SimpleDeviceCommunication
         /// <summary>
         /// Send get lighting status request to the device.
         /// </summary>
-        public void GetLightingStatus()
+        public async Task GetLightingStatusAsync()
         {
-            Task<StateOfLightingChangedResponse> result = _deviceConnection.GetLightingStatus();
-            result.Wait();
-            StateOfLightingChangedResponse lightingState = result.Result;
+            StateOfLightingChangedResponse lightingState = await _deviceConnection.GetLightingStatus();
             if (lightingState == null || lightingState.statusCode != System.Net.HttpStatusCode.OK)
             {
                 showMessage?.Invoke("Get lighting status failed. " + (lightingState?.statusCode == null ?
