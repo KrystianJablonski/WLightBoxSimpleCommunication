@@ -1,5 +1,6 @@
 # WLightBoxSimpleCommunication
-Recruitment task. Includes:
+Project allowing for communication with the BleBox wLightBox device. 
+Includes:
 - API for communication with wLightBox device
 - Fasade allowing for easy usage of communication 
 - MVVM pattern allowing for usage of both previous components by WPF application
